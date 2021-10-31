@@ -36,12 +36,12 @@ string Process::Ram() { return ram_; }
 string Process::User() { return user_; }
 
 // TODO: Return the age of this process (in seconds)
-long int Process::UpTime() { return upTime_; }
+// Need to subtract process uptime from system uptime given by LinuxParser::UpTime() 
+// As the process uptime is the time the process started after system boot
+long int Process::UpTime() { return LinuxParser::UpTime() - upTime_; }
 
 // TODO: Overload the "less than" comparison operator for Process objects
 // REMOVE: [[maybe_unused]] once you define the function
 bool Process::operator<(Process const& a) const { 
-    if (cpuUsage_ > a.cpuUsage_)
-        return true;
-    return false;
+    return cpuUsage_ > a.cpuUsage_;
 }

@@ -5,12 +5,10 @@
 #include <vector>
 #include <boost/lexical_cast.hpp>
 #include <bits/stdc++.h>
-#include <unistd.h>
+#include <cmath>
 
 #include "linux_parser.h"
 
-using std::stof;
-using std::stol;
 using std::stoi;
 using std::string;
 using std::to_string;
@@ -104,8 +102,9 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-// Alternate Method
-// TODO: Read and return the system memory utilization
+/*
+// Alternate Method with two istringstreams w/o parameter fetch function call()
+// Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() {
   string line;
   string memName, memT, memF;
@@ -130,8 +129,26 @@ float LinuxParser::MemoryUtilization() {
   }
   return fracUsedMem;
 }
+*/
 
-// TODO: Read and return the system uptime
+float LinuxParser::MemoryUtilization() {
+  string line;
+  string memName, memT, memF;
+  float fracUsedMem{0.0};
+
+  string memT = getFileCMDParameterValue(kProcDirectory + kStatFilename, filterMemTotalString);
+  string memF = getFileCMDParameterValue(kProcDirectory + kStatFilename, filterMemFreeString);
+
+  // String to Float conversions and Used memory calculation
+  float memTotal = boost::lexical_cast<float>(memT);
+  float memFree = boost::lexical_cast<float>(memF);
+  float usedMem = memTotal - memFree;
+  fracUsedMem = usedMem/memTotal;
+
+  return fracUsedMem;
+}
+
+// Read and return the system uptime
 long LinuxParser::UpTime() { 
   string line;
   string upT, idleT;
@@ -143,12 +160,13 @@ long LinuxParser::UpTime() {
     std::istringstream linestream(line);
     linestream >> upT >> idleT;
 
-    sysUpTime = stol(upT);
+    sysUpTime = boost::lexical_cast<long>(upT);
     return sysUpTime;
   }
   return sysUpTime; 
 }
 
+/* Not implemented as yet
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
 
@@ -161,8 +179,9 @@ long LinuxParser::ActiveJiffies() { return 0; }
 
 // TODO: Read and return the number of idle jiffies for the system
 long LinuxParser::IdleJiffies() { return 0; }
+*/
 
-// TODO: Read and return CPU utilization
+// Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() {
   string line;
   string key, value;
@@ -182,9 +201,9 @@ vector<string> LinuxParser::CpuUtilization() {
   return values;
 }
 
-// TODO: Read and return the total number of processes
+// Read and return the total number of processes
 int LinuxParser::TotalProcesses() { 
-  string value = getFileCMDParameterValue(kProcDirectory + kStatFilename, "processes");
+  string value = getFileCMDParameterValue(kProcDirectory + kStatFilename, filterProcesses);
   int numProcess{0};
   
   if (!value.empty()) {
@@ -194,9 +213,9 @@ int LinuxParser::TotalProcesses() {
   return numProcess; 
 }
 
-// TODO: Read and return the number of running processes
+// Read and return the number of running processes
 int LinuxParser::RunningProcesses() { 
-  string value = getFileCMDParameterValue(kProcDirectory + kStatFilename, "procs_running");
+  string value = getFileCMDParameterValue(kProcDirectory + kStatFilename, filterRunningProcesses);
   int numProcess{0};
   
   if (!value.empty()) {
@@ -206,8 +225,7 @@ int LinuxParser::RunningProcesses() {
   return numProcess; 
 }
 
-// TODO: Read and return the command associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the command associated with a process
 string LinuxParser::Command(int pid) { 
   string cmd;
   std::ifstream filestream(kProcDirectory + std::to_string(pid) + kCmdlineFilename);
@@ -218,30 +236,44 @@ string LinuxParser::Command(int pid) {
   return {};
 }
 
-// TODO: Read and return the memory used by a process
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the memory used by a process
+/*
+VmSize gives memory usage more than your Physical RAM size!
+Because VmSize is the sum of all the virtual memory.
+VmRSS gives the exact physical memory being used as a part of Physical RAM.
+*/
 string LinuxParser::Ram(int pid) { 
-  string value = getFileCMDParameterValue(kProcDirectory + to_string(pid) + kStatusFilename, "VmSize:");
+  string value = getFileCMDParameterValue(kProcDirectory + to_string(pid) + kStatusFilename, filterProcMem);
   float memProcess{0.0};
   
   if (!value.empty()) {
-    memProcess = stof(value);
+    memProcess = boost::lexical_cast<float>(value);
     memProcess /= 1024;
+
+    // Method 1
+    memProcess = round(memProcess);
     return to_string(memProcess);
+
+    /*
+    // Method 2 
+    std::stringstream linestream;
+    linestream << std::fixed << std::setprecision(1) << memProcess;
+    return linestream.str();
+    */
   }
   return to_string(memProcess);
 }
 
-// TODO: Read and return the CPU usage used by a process
+// Read and return the CPU usage used by a process
 float LinuxParser::CpuUtilization(int pid) {
   string path = kProcDirectory + to_string(pid) + kStatFilename;
 
   long sysUpTime = UpTime();
-  long utime = stol(getFileCMDParameterValue(path, 13)); // 13th index element in cmdresult or file token index
-  long stime = stol(getFileCMDParameterValue(path, 14)); // 14th index element in cmdresult or file token index
-  long cutime = stol(getFileCMDParameterValue(path, 15)); // 15th index element in cmdresult or file token index
-  long cstime = stol(getFileCMDParameterValue(path, 16)); // 16th index element in cmdresult or file token index  
-  long starttime = stol(getFileCMDParameterValue(path, 21)); // 21st index element in cmdresult or file token index
+  long utime = boost::lexical_cast<long>(getFileCMDParameterValue(path, 13)); // 13th index element in cmdresult or file token index
+  long stime = boost::lexical_cast<long>(getFileCMDParameterValue(path, 14)); // 14th index element in cmdresult or file token index
+  long cutime = boost::lexical_cast<long>(getFileCMDParameterValue(path, 15)); // 15th index element in cmdresult or file token index
+  long cstime = boost::lexical_cast<long>(getFileCMDParameterValue(path, 16)); // 16th index element in cmdresult or file token index  
+  long starttime = boost::lexical_cast<long>(getFileCMDParameterValue(path, 21)); // 21st index element in cmdresult or file token index
 
   long hertz = sysconf(_SC_CLK_TCK);
 
@@ -249,20 +281,18 @@ float LinuxParser::CpuUtilization(int pid) {
   totalTime += cutime + cstime; // include time from child processes
 
   float secTime = sysUpTime - (starttime / hertz);
-  float cpuUsage = 100 * (totalTime / hertz) / secTime;
+  float cpuUsage = (totalTime / hertz) / secTime;
   
   return cpuUsage;
 }
 
-// TODO: Read and return the user ID associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the user ID associated with a process
 string LinuxParser::Uid(int pid) { 
-  string uid = getFileCMDParameterValue(kProcDirectory + to_string(pid) + kStatusFilename, "Uid:");
+  string uid = getFileCMDParameterValue(kProcDirectory + to_string(pid) + kStatusFilename, filterUID);
   return uid;
 }
 
-// TODO: Read and return the user associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the user associated with a process
 string LinuxParser::User(int pid) { 
   string line;
   string key, value, x;
@@ -283,8 +313,7 @@ string LinuxParser::User(int pid) {
   return uid;
 }
 
-// TODO: Read and return the uptime of a process
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the uptime of a process
 long LinuxParser::UpTime(int pid) { 
   string path = kProcDirectory + to_string(pid) + kStatFilename;
   string value = getFileCMDParameterValue(path, 21); // 21st index element in cmdresult or file token index
