@@ -12,7 +12,7 @@ using std::to_string;
 using std::vector;
 
 Process::Process(int pid) {
-    this->pid_ = pid;
+    pid_ = pid;
     cpuUsage_ = LinuxParser::CpuUtilization(pid_);
     upTime_ = LinuxParser::UpTime(pid_);
     command_ = LinuxParser::Command(pid_);
@@ -20,28 +20,27 @@ Process::Process(int pid) {
     user_ = LinuxParser::User(pid_);
 }
 
-// TODO: Return this process's ID
+// Return this process's ID
 int Process::Pid() { return pid_; }
 
-// TODO: Return this process's CPU utilization
+// Return this process's CPU utilization
 float Process::CpuUtilization() { return cpuUsage_; }
 
-// TODO: Return the command that generated this process
+// Return the command that generated this process
 string Process::Command() { return command_; }
 
-// TODO: Return this process's memory utilization
+// Return this process's memory utilization
 string Process::Ram() { return ram_; }
 
-// TODO: Return the user (name) that generated this process
+// Return the user (name) that generated this process
 string Process::User() { return user_; }
 
-// TODO: Return the age of this process (in seconds)
+// Return the age of this process (in seconds)
 // Need to subtract process uptime from system uptime given by LinuxParser::UpTime() 
 // As the process uptime is the time the process started after system boot
 long int Process::UpTime() { return LinuxParser::UpTime() - upTime_; }
 
-// TODO: Overload the "less than" comparison operator for Process objects
-// REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a) const { 
+// Overload the "less than" comparison operator for Process objects
+bool Process::operator<(Process const &a) const { 
     return cpuUsage_ > a.cpuUsage_;
 }

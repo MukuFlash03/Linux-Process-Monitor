@@ -7,29 +7,29 @@
 
 namespace LinuxParser {
 // Paths
-const string kProcDirectory{"/proc/"};
-const string kCmdlineFilename{"/cmdline"};
-const string kCpuinfoFilename{"/cpuinfo"};
-const string kStatusFilename{"/status"};
-const string kStatFilename{"/stat"};
-const string kUptimeFilename{"/uptime"};
-const string kMeminfoFilename{"/meminfo"};
-const string kVersionFilename{"/version"};
-const string kOSPath{"/etc/os-release"};
-const string kPasswordPath{"/etc/passwd"};
+const std::string kProcDirectory{"/proc/"};
+const std::string kCmdlineFilename{"/cmdline"};
+const std::string kCpuinfoFilename{"/cpuinfo"};
+const std::string kStatusFilename{"/status"};
+const std::string kStatFilename{"/stat"};
+const std::string kUptimeFilename{"/uptime"};
+const std::string kMeminfoFilename{"/meminfo"};
+const std::string kVersionFilename{"/version"};
+const std::string kOSPath{"/etc/os-release"};
+const std::string kPasswordPath{"/etc/passwd"};
 
 // Key names
-const string filterProcesses("processes");
-const string filterRunningProcesses("procs_running");
-const string filterMemTotalString("MemTotal:");
-const string filterMemFreeString("MemFree:");
-const string filterCpu("cpu");
-const string filterUID("Uid:");
-const string filterProcMem("VmRSS:");
+const std::string filterProcesses("processes");
+const std::string filterRunningProcesses("procs_running");
+const std::string filterMemTotalString("MemTotal:");
+const std::string filterMemFreeString("MemFree:");
+const std::string filterCpu("cpu");
+const std::string filterUID("Uid:");
+const std::string filterProcMem("VmRSS:");
 
 // Personal Support Functions
-string getFileCMDParameterValue(string path, string parameter);
-string getFileCMDParameterValue(string path, unsigned long position);
+std::string getFileCMDParameterValue(std::string path, std::string parameter);
+std::string getFileCMDParameterValue(std::string path, unsigned long position);
 
 // System
 float MemoryUtilization();

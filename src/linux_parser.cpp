@@ -102,7 +102,7 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-/*
+
 // Alternate Method with two istringstreams w/o parameter fetch function call()
 // Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() {
@@ -129,24 +129,25 @@ float LinuxParser::MemoryUtilization() {
   }
   return fracUsedMem;
 }
-*/
 
+/* Possible make build -> ./build/monitor what() error
 float LinuxParser::MemoryUtilization() {
   string line;
-  string memName, memT, memF;
+  string memName;
   float fracUsedMem{0.0};
 
   string memT = getFileCMDParameterValue(kProcDirectory + kStatFilename, filterMemTotalString);
   string memF = getFileCMDParameterValue(kProcDirectory + kStatFilename, filterMemFreeString);
 
   // String to Float conversions and Used memory calculation
-  float memTotal = boost::lexical_cast<float>(memT);
-  float memFree = boost::lexical_cast<float>(memF);
+  float memTotal = stof(memT);
+  float memFree = stof(memF);
   float usedMem = memTotal - memFree;
   fracUsedMem = usedMem/memTotal;
 
   return fracUsedMem;
 }
+*/
 
 // Read and return the system uptime
 long LinuxParser::UpTime() { 
@@ -160,7 +161,7 @@ long LinuxParser::UpTime() {
     std::istringstream linestream(line);
     linestream >> upT >> idleT;
 
-    sysUpTime = boost::lexical_cast<long>(upT);
+    sysUpTime = stol(upT);
     return sysUpTime;
   }
   return sysUpTime; 
@@ -207,7 +208,7 @@ int LinuxParser::TotalProcesses() {
   int numProcess{0};
   
   if (!value.empty()) {
-    numProcess = boost::lexical_cast<int>(value);
+    numProcess = stoi(value);
     return numProcess;
   }
   return numProcess; 
@@ -219,7 +220,7 @@ int LinuxParser::RunningProcesses() {
   int numProcess{0};
   
   if (!value.empty()) {
-    numProcess = boost::lexical_cast<int>(value);
+    numProcess = stoi(value);
     return numProcess;
   }
   return numProcess; 
@@ -247,19 +248,25 @@ string LinuxParser::Ram(int pid) {
   float memProcess{0.0};
   
   if (!value.empty()) {
-    memProcess = boost::lexical_cast<float>(value);
+    // Some error with boost::lexical_cast, hence removing all instances of boost
+    // Error: terminate called after throwing an instance of 'boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::bad_lexical_cast> >'
+    // what():  bad lexical cast: source type value could not be interpreted as target
+    // Aborted (core dumped)
+    // memProcess = boost::lexical_cast<float>(value);
+    memProcess = stof(value);
     memProcess /= 1024;
 
+    /*
     // Method 1
     memProcess = round(memProcess);
     return to_string(memProcess);
+    */
 
-    /*
+    
     // Method 2 
     std::stringstream linestream;
     linestream << std::fixed << std::setprecision(1) << memProcess;
     return linestream.str();
-    */
   }
   return to_string(memProcess);
 }
@@ -269,11 +276,11 @@ float LinuxParser::CpuUtilization(int pid) {
   string path = kProcDirectory + to_string(pid) + kStatFilename;
 
   long sysUpTime = UpTime();
-  long utime = boost::lexical_cast<long>(getFileCMDParameterValue(path, 13)); // 13th index element in cmdresult or file token index
-  long stime = boost::lexical_cast<long>(getFileCMDParameterValue(path, 14)); // 14th index element in cmdresult or file token index
-  long cutime = boost::lexical_cast<long>(getFileCMDParameterValue(path, 15)); // 15th index element in cmdresult or file token index
-  long cstime = boost::lexical_cast<long>(getFileCMDParameterValue(path, 16)); // 16th index element in cmdresult or file token index  
-  long starttime = boost::lexical_cast<long>(getFileCMDParameterValue(path, 21)); // 21st index element in cmdresult or file token index
+  long utime = stol(getFileCMDParameterValue(path, 13)); // 13th index element in cmdresult or file token index
+  long stime = stol(getFileCMDParameterValue(path, 14)); // 14th index element in cmdresult or file token index
+  long cutime = stol(getFileCMDParameterValue(path, 15)); // 15th index element in cmdresult or file token index
+  long cstime = stol(getFileCMDParameterValue(path, 16)); // 16th index element in cmdresult or file token index  
+  long starttime = stol(getFileCMDParameterValue(path, 21)); // 21st index element in cmdresult or file token index
 
   long hertz = sysconf(_SC_CLK_TCK);
 
