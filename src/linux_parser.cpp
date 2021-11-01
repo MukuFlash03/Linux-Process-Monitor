@@ -161,7 +161,9 @@ long LinuxParser::UpTime() {
     std::istringstream linestream(line);
     linestream >> upT >> idleT;
 
-    sysUpTime = stol(upT);
+    if (!upT.empty())
+      sysUpTime = stol(upT);
+    
     return sysUpTime;
   }
   return sysUpTime; 
@@ -271,16 +273,36 @@ string LinuxParser::Ram(int pid) {
   return to_string(memProcess);
 }
 
+// Support function to validate whether string is not empty for successful type conversion to int later on
+bool LinuxParser::validateStrValue(std::string value) {
+  if (!value.empty())
+    return true;
+  return false;
+}
+
 // Read and return the CPU usage used by a process
 float LinuxParser::CpuUtilization(int pid) {
   string path = kProcDirectory + to_string(pid) + kStatFilename;
 
+  long utime{0}, stime{0}, cutime{0}, cstime{0}, starttime{0};
+  string value;
+
   long sysUpTime = UpTime();
-  long utime = stol(getFileCMDParameterValue(path, 13)); // 13th index element in cmdresult or file token index
-  long stime = stol(getFileCMDParameterValue(path, 14)); // 14th index element in cmdresult or file token index
-  long cutime = stol(getFileCMDParameterValue(path, 15)); // 15th index element in cmdresult or file token index
-  long cstime = stol(getFileCMDParameterValue(path, 16)); // 16th index element in cmdresult or file token index  
-  long starttime = stol(getFileCMDParameterValue(path, 21)); // 21st index element in cmdresult or file token index
+
+  value = getFileCMDParameterValue(path, 13); // 13th index element in cmdresult or file token index
+  utime = validateStrValue(value) ?  stol(value) : 0;
+
+  value = getFileCMDParameterValue(path, 14); // 14th index element in cmdresult or file token index
+  stime = validateStrValue(value) ?  stol(value) : 0;
+
+  value = getFileCMDParameterValue(path, 15); // 15th index element in cmdresult or file token index
+  cutime = validateStrValue(value) ?  stol(value) : 0;
+
+  value = getFileCMDParameterValue(path, 16); // 16th index element in cmdresult or file token index
+  cstime = validateStrValue(value) ?  stol(value) : 0;
+
+  value = getFileCMDParameterValue(path, 21); // 21th index element in cmdresult or file token index
+  starttime = validateStrValue(value) ?  stol(value) : 0;
 
   long hertz = sysconf(_SC_CLK_TCK);
 
@@ -290,7 +312,8 @@ float LinuxParser::CpuUtilization(int pid) {
   float secTime = sysUpTime - (starttime / hertz);
   float cpuUsage = (totalTime / hertz) / secTime;
   
-  return cpuUsage;
+  return cpuUsage; 
+  // stime!!! stol() what() issue witnessed once
 }
 
 // Read and return the user ID associated with a process

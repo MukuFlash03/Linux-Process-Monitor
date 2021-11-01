@@ -30,6 +30,7 @@ const std::string filterProcMem("VmRSS:");
 // Personal Support Functions
 std::string getFileCMDParameterValue(std::string path, std::string parameter);
 std::string getFileCMDParameterValue(std::string path, unsigned long position);
+bool validateStrValue(std::string value);
 
 // System
 float MemoryUtilization();

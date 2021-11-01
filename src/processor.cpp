@@ -17,8 +17,12 @@ float Processor::Utilization() {
 
     vector<string> timeValues = LinuxParser::CpuUtilization();
 
-    for (auto i : timeValues)
-        currVals.emplace_back(stol(i));
+    for (auto i : timeValues) {
+        if (i == "")
+            currVals.emplace_back(0);
+        else
+            currVals.emplace_back(stol(i));
+    }
 
     long currTotal = std::accumulate(currVals.begin(), currVals.end(), 0);
     long prevTotal = std::accumulate(prevVals.begin(), prevVals.end(), 0);
